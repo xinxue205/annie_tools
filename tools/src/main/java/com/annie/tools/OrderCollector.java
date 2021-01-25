@@ -26,9 +26,9 @@ import net.sf.json.JSONObject;
 
 public class OrderCollector {
 	private static final String FILE_POSTFIX = ".xlsx";
-	private static String sourceFileName;
-	private static String sourceDir;
-	static String targetDir ;
+	private static String sourceFileName = "单号"+ FILE_POSTFIX;
+	private static String sourceDir = ".";
+	static String targetDir = ".";
 	static int sourceBeginLine = 2;
 	static String[] targetHeader = {"订单号", "收件人姓名", "收件人电话", "快递单号", "单品名称"};
 	static Map<String, Integer> kdm_idx = new HashMap<String, Integer>();
@@ -75,7 +75,7 @@ public class OrderCollector {
             FileOutputStream out = null; 
             try {
             	new File(targetDir+File.separator+"快递").mkdirs();
-                out = new FileOutputStream(targetDir+File.separator+e.getKey()+ FILE_POSTFIX); 
+                out = new FileOutputStream(targetDir+File.separator+"快递"+File.separator+e.getKey()+ FILE_POSTFIX); 
                 workbook.write(out); 
             } catch (IOException e1) { 
                 e1.printStackTrace(); 
@@ -91,7 +91,7 @@ public class OrderCollector {
 		System.out.println("此次处理完毕(共"+ j +"条数据)！");
 	}
 	
-	private static void init() throws Throwable {
+	private static void init()  {
 		System.out.println("注意：1.原数据表格在文件的第一");
 		kdm_idx.put("顺丰", 0);
 		kdm_idx.put("韵达", 1);
@@ -114,7 +114,7 @@ public class OrderCollector {
 		kdh_kdm.put("55", "百世");
 		
 		for (Entry<String, Integer> e : kdm_idx.entrySet()) {
-			new File(targetDir+File.separator+e.getKey()+ FILE_POSTFIX).delete();
+			new File(targetDir+File.separator+"快递"+File.separator+e.getKey()+ FILE_POSTFIX).delete();
 		}
 		allData[0] = new ArrayList<String[]>();
 		allData[1] = new ArrayList<String[]>();
@@ -126,11 +126,21 @@ public class OrderCollector {
 		allData[7] = new ArrayList<String[]>();
 		allData[8] = new ArrayList<String[]>();
 		
-		String s = getConf();
-		JSONObject jsonObject = JSONObject.fromObject(s);
-		sourceFileName = (String) jsonObject.get("sourceFileName");
-		sourceDir = (String) jsonObject.get("sourceDir");
-		targetDir = (String) jsonObject.get("targetDir");
+		try {
+			String s = getConf();
+			JSONObject jsonObject = JSONObject.fromObject(s);
+			sourceFileName = (String) jsonObject.get("sourceFileName");
+			sourceDir = (String) jsonObject.get("sourceDir");
+			targetDir = (String) jsonObject.get("targetDir");
+		} catch (Exception e1) {
+			System.out.println("无配置文件，启用默认配置");
+		}
+		
+		System.out.println("-----------配置 开始-----------");
+		System.out.println(sourceFileName);
+		System.out.println(sourceDir);
+		System.out.println(targetDir);
+		System.out.println("-----------配置 结束-----------");
 	}
 
 	private static void readData() throws Exception {
@@ -185,14 +195,14 @@ public class OrderCollector {
 
 	private static String getConf() throws Exception {
 		String jsonStr = "";
-            Reader reader = new InputStreamReader(new FileInputStream("conf.json"), "UTF-8");
-            int ch = 0;
-            StringBuffer sb = new StringBuffer();
-            while ((ch = reader.read()) != -1) {
-                sb.append((char) ch);
-            }
-            reader.close();
-            jsonStr = sb.toString();
-            return jsonStr;
+        Reader reader = new InputStreamReader(new FileInputStream("conf.json"), "UTF-8");
+        int ch = 0;
+        StringBuffer sb = new StringBuffer();
+        while ((ch = reader.read()) != -1) {
+            sb.append((char) ch);
+        }
+        reader.close();
+        jsonStr = sb.toString();
+        return jsonStr;
 	}
 }
