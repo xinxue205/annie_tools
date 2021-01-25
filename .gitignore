@@ -2,3 +2,4 @@
 *.project
 *.classpath
 tools/target/classes
+tools/target

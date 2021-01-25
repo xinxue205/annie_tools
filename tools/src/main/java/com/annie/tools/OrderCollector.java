@@ -22,21 +22,22 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import net.sf.json.JSONObject;
 
 public class OrderCollector {
-	
 	private static final String FILE_POSTFIX = ".xlsx";
-	static String sourceFile = "C:\\Users\\FU\\Desktop\\工作簿7.xlsx";
-	static String targetDir = "C:\\Users\\FU\\Desktop\\快递\\";
+	private static String sourceFileName;
+	private static String sourceDir;
+	static String targetDir ;
 	static int sourceBeginLine = 2;
 	static String[] targetHeader = {"订单号", "收件人姓名", "收件人电话", "快递单号", "单品名称"};
 	static Map<String, Integer> kdm_idx = new HashMap<String, Integer>();
 	static Map<String, String> kdh_kdm = new HashMap<String, String>();
 	static List<String[]>[] allData = new ArrayList[9];
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Throwable {
 		init();
-		readData(sourceFile); 
+		readData(); 
 		exportData();
 	}
 
@@ -73,7 +74,7 @@ public class OrderCollector {
 			//写入文件
             FileOutputStream out = null; 
             try {
-            	new File(targetDir).mkdirs();
+            	new File(targetDir+File.separator+"快递").mkdirs();
                 out = new FileOutputStream(targetDir+File.separator+e.getKey()+ FILE_POSTFIX); 
                 workbook.write(out); 
             } catch (IOException e1) { 
@@ -90,7 +91,7 @@ public class OrderCollector {
 		System.out.println("此次处理完毕(共"+ j +"条数据)！");
 	}
 	
-	private static void init() {
+	private static void init() throws Throwable {
 		System.out.println("注意：1.原数据表格在文件的第一");
 		kdm_idx.put("顺丰", 0);
 		kdm_idx.put("韵达", 1);
@@ -124,10 +125,16 @@ public class OrderCollector {
 		allData[6] = new ArrayList<String[]>();
 		allData[7] = new ArrayList<String[]>();
 		allData[8] = new ArrayList<String[]>();
+		
+		String s = getConf();
+		JSONObject jsonObject = JSONObject.fromObject(s);
+		sourceFileName = (String) jsonObject.get("sourceFileName");
+		sourceDir = (String) jsonObject.get("sourceDir");
+		targetDir = (String) jsonObject.get("targetDir");
 	}
 
-	private static void readData(String sourceFile) throws Exception {
-		FileInputStream fis = new FileInputStream(sourceFile);  
+	private static void readData() throws Exception {
+		FileInputStream fis = new FileInputStream(sourceDir+File.separator+sourceFileName);  
 		Workbook wb = WorkbookFactory.create(fis); 
 		Sheet sheet = wb.getSheetAt(wb.getNumberOfSheets()-1); 
 		System.out.println("当前处理的表格名："+sheet.getSheetName());
@@ -178,7 +185,7 @@ public class OrderCollector {
 
 	private static String getConf() throws Exception {
 		String jsonStr = "";
-            Reader reader = new InputStreamReader(OrderCollector.class.getResourceAsStream("conf.json"),"utf-8");
+            Reader reader = new InputStreamReader(new FileInputStream("conf.json"), "UTF-8");
             int ch = 0;
             StringBuffer sb = new StringBuffer();
             while ((ch = reader.read()) != -1) {
