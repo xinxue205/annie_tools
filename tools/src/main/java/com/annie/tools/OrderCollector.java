@@ -22,7 +22,8 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import net.sf.json.JSONObject;
+//import net.sf.json.JSONObject;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class OrderCollector {
 	private static final String FILE_POSTFIX = ".xlsx";
@@ -128,10 +129,12 @@ public class OrderCollector {
 		
 		try {
 			String s = getConf();
-			JSONObject jsonObject = JSONObject.fromObject(s);
-			sourceFileName = (String) jsonObject.get("sourceFileName");
-			sourceDir = (String) jsonObject.get("sourceDir");
-			targetDir = (String) jsonObject.get("targetDir");
+//			JSONObject jsonObject = JSONObject.fromObject(s);
+			ObjectMapper mapper = new ObjectMapper();
+	        Map readValue = mapper.readValue(s, Map.class);
+			sourceFileName = (String) readValue.get("sourceFileName");
+			sourceDir = (String) readValue.get("sourceDir");
+			targetDir = (String) readValue.get("targetDir");
 		} catch (Exception e1) {
 			System.out.println("无配置文件，启用默认配置");
 		}
