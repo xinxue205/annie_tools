@@ -113,6 +113,8 @@ public class OrderCollector {
 		kdh_kdm.put("98", "邮政");
 		kdh_kdm.put("DP", "邮政");
 		kdh_kdm.put("55", "百世");
+		kdh_kdm.put("73", "中通");
+		kdh_kdm.put("78", "中通");
 		
 		for (Entry<String, Integer> e : kdm_idx.entrySet()) {
 			new File(targetDir+File.separator+"快递"+File.separator+e.getKey()+ FILE_POSTFIX).delete();
