@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Map.Entry;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -23,7 +25,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 //import net.sf.json.JSONObject;
-import org.codehaus.jackson.map.ObjectMapper;
+//import org.codehaus.jackson.map.ObjectMapper;
 
 public class OrderCollector {
 	private static final String FILE_POSTFIX = ".xlsx";
@@ -92,7 +94,7 @@ public class OrderCollector {
 		System.out.println("此次处理完毕(共"+ j +"条数据)！");
 	}
 	
-	private static void init()  {
+	private static void init() throws Exception  {
 		System.out.println("注意：1.原数据表格在文件的第一");
 		kdm_idx.put("顺丰", 0);
 		kdm_idx.put("韵达", 1);
@@ -104,21 +106,6 @@ public class OrderCollector {
 		kdm_idx.put("百世", 7);
 		kdm_idx.put("其它", 8);
 		
-		kdh_kdm.put("SF", "顺丰");
-		kdh_kdm.put("43", "韵达");
-		kdh_kdm.put("75", "中通");
-		kdh_kdm.put("YT", "圆通");
-		kdh_kdm.put("77", "申通");
-		kdh_kdm.put("JD", "京东");
-		kdh_kdm.put("98", "邮政");
-		kdh_kdm.put("DP", "邮政");
-		kdh_kdm.put("55", "百世");
-		kdh_kdm.put("73", "中通");
-		kdh_kdm.put("78", "中通");
-		
-		for (Entry<String, Integer> e : kdm_idx.entrySet()) {
-			new File(targetDir+File.separator+"快递"+File.separator+e.getKey()+ FILE_POSTFIX).delete();
-		}
 		allData[0] = new ArrayList<String[]>();
 		allData[1] = new ArrayList<String[]>();
 		allData[2] = new ArrayList<String[]>();
@@ -129,23 +116,34 @@ public class OrderCollector {
 		allData[7] = new ArrayList<String[]>();
 		allData[8] = new ArrayList<String[]>();
 		
-		try {
-			String s = getConf();
+		Properties s = getConf();
 //			JSONObject jsonObject = JSONObject.fromObject(s);
-			ObjectMapper mapper = new ObjectMapper();
-	        Map readValue = mapper.readValue(s, Map.class);
-			sourceFileName = (String) readValue.get("sourceFileName");
-			sourceDir = (String) readValue.get("sourceDir");
-			targetDir = (String) readValue.get("targetDir");
-		} catch (Exception e1) {
-			System.out.println("无配置文件，启用默认配置");
-		}
+//			ObjectMapper mapper = new ObjectMapper();
+//	        Map readValue = mapper.readValue(s, Map.class);
+		sourceFileName = (String) s.getProperty("sourceFileName");
+		sourceDir = (String) s.getProperty("sourceDir");
+		targetDir = (String) s.getProperty("targetDir");
 		
 		System.out.println("-----------配置 开始-----------");
 		System.out.println(sourceFileName);
 		System.out.println(sourceDir);
 		System.out.println(targetDir);
 		System.out.println("-----------配置 结束-----------");
+		
+		for (Entry<String, Integer> e : kdm_idx.entrySet()) {
+			new File(targetDir+File.separator+"快递"+File.separator+e.getKey()+ FILE_POSTFIX).delete();
+			
+			String kdh = s.getProperty(e.getKey());
+			if (kdh == null) continue;
+			if(kdh.indexOf(",")>0) {
+				String[] kdhs = kdh.split(",");
+				for (int i = 0; i < kdhs.length; i++) {
+					kdh_kdm.put(kdhs[i], e.getKey());
+				}
+			} else {
+				kdh_kdm.put(kdh, e.getKey());
+			}
+		}
 	}
 
 	private static void readData() throws Exception {
@@ -198,16 +196,10 @@ public class OrderCollector {
 		}
 	}
 
-	private static String getConf() throws Exception {
-		String jsonStr = "";
-        Reader reader = new InputStreamReader(new FileInputStream("conf.json"), "UTF-8");
-        int ch = 0;
-        StringBuffer sb = new StringBuffer();
-        while ((ch = reader.read()) != -1) {
-            sb.append((char) ch);
-        }
-        reader.close();
-        jsonStr = sb.toString();
-        return jsonStr;
+	private static Properties getConf() throws Exception {
+		Properties properties = new Properties();
+		InputStreamReader inputStream = new InputStreamReader(new FileInputStream("conf.ini"),"UTF-8");
+		properties.load(inputStream);
+		return properties;
 	}
 }
