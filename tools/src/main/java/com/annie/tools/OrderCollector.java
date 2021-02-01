@@ -120,9 +120,9 @@ public class OrderCollector {
 //			JSONObject jsonObject = JSONObject.fromObject(s);
 //			ObjectMapper mapper = new ObjectMapper();
 //	        Map readValue = mapper.readValue(s, Map.class);
-		sourceFileName = (String) s.getProperty("sourceFileName");
-		sourceDir = (String) s.getProperty("sourceDir");
-		targetDir = (String) s.getProperty("targetDir");
+		sourceFileName = (String) s.getProperty("sourceFileName", "单号"+FILE_POSTFIX);
+		sourceDir = (String) s.getProperty("sourceDir", ".");
+		targetDir = (String) s.getProperty("targetDir", ".");
 		
 		System.out.println("-----------配置 开始-----------");
 		System.out.println(sourceFileName);
