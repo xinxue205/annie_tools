@@ -6,7 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +40,10 @@ public class OrderCollector {
 	static Map<String, String> kdh_kdm = new HashMap<String, String>();
 	static List<String[]>[] allData = new ArrayList[9];
 	private static Properties jdConf = new Properties();
+	private static SimpleDateFormat sdf = new SimpleDateFormat("MM-dd");
 	
 	public static void main(String[] args) throws Exception {
-		String type = "jd";//args[0];
+		String type = args[0];
 		if("kd".equalsIgnoreCase(type)) {
 			System.out.println("-----------快递单处理-----------");
 			kdOrder();
@@ -60,6 +63,7 @@ public class OrderCollector {
 	}
 	
 	private static void exportDataJD(HashMap<String, Object> data) {
+		String date = sdf.format(new Date());
 		for (Entry e : data.entrySet()) {
 			Map<String, Object> baseMap = (Map<String, Object>) e.getValue();//基地
 			for (Entry e2 : baseMap.entrySet()) {
@@ -74,6 +78,11 @@ public class OrderCollector {
 	        	row0.createCell(4).setCellValue("数量");
 	        	row0.createCell(5).setCellValue("品名");
 	        	row0.createCell(6).setCellValue("规格");
+	        	row0.createCell(7).setCellValue("备注");
+	        	row0.createCell(8).setCellValue("发件人");
+	        	row0.createCell(9).setCellValue("发件电话");
+	        	row0.createCell(10).setCellValue("快递单号");
+	        	row0.createCell(11).setCellValue("快递公司");
 	        	
 				for (int i = 0; i < prodList.size(); i++) {
 					String[] strs = (String[]) prodList.get(i);
@@ -86,13 +95,18 @@ public class OrderCollector {
 		        	row.createCell(4).setCellValue(strs[3]);
 		        	row.createCell(5).setCellValue(strs[4]);
 		        	row.createCell(6).setCellValue(strs[5]);
-				}
+		        	row.createCell(7).setCellValue(strs[6]);
+		        	row.createCell(8).setCellValue(strs[7]);
+		        	row.createCell(9).setCellValue(strs[8]);
+		        	row.createCell(10).setCellValue(strs[9]);
+		        	row.createCell(11).setCellValue(strs[10]);
+}
 				
 				//写入文件
 		        FileOutputStream out = null; 
 		        try {
 		        	new File(targetDir+File.separator+"基地").mkdirs();
-		            out = new FileOutputStream(targetDir+File.separator+"基地"+File.separator+e2.getKey()+" "+ e.getKey() + FILE_POSTFIX); 
+		            out = new FileOutputStream(targetDir+File.separator+"基地"+File.separator+date + " 苏苏 " +e2.getKey()+" "+ e.getKey() + FILE_POSTFIX); 
 		            workbook.write(out); 
 		        } catch (IOException e1) { 
 		            e1.printStackTrace(); 
@@ -131,6 +145,11 @@ public class OrderCollector {
 			String count = getValidCellContent(r.getCell(4));
 			String product = getValidCellContent(r.getCell(5));
 			String spec = getValidCellContent(r.getCell(6));
+			String comment = getValidCellContent(r.getCell(8));
+			String sendPerson = getValidCellContent(r.getCell(9));
+			String sendTel = getValidCellContent(r.getCell(10));
+			String kddh = getValidCellContent(r.getCell(11));
+			String kdgs = getValidCellContent(r.getCell(12));
 			
 			boolean findOrNot = false;
 			for (Entry e : jdConf.entrySet()) {
@@ -138,7 +157,7 @@ public class OrderCollector {
 				if(product.indexOf(findName)!=-1) {//找到基地
 					String baseName = (String) e.getValue();//基地名
 					Map baseMap = (Map) allMap.get(baseName);
-					String[] prodInfo = {addr, name, phone, count, product, spec};
+					String[] prodInfo = {addr, name, phone, count, product, spec, comment, sendPerson, sendTel, kddh, kdgs};
 					if(baseMap==null) { //新加的基地
 						baseMap = new HashMap();
 						allMap.put(baseName, baseMap);//基地下加产品
