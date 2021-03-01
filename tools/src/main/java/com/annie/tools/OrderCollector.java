@@ -84,9 +84,10 @@ public class OrderCollector {
 	        	row0.createCell(10).setCellValue("快递单号");
 	        	row0.createCell(11).setCellValue("快递公司");
 	        	
+	        	int account = 0;
 				for (int i = 0; i < prodList.size(); i++) {
 					String[] strs = (String[]) prodList.get(i);
-					System.out.println(e.getKey()+" "+ e2.getKey() +" "+strs[1]+" "+strs[2]);
+					System.out.println(e.getKey()+" "+ e2.getKey() +" "+ strs[4] +" "+strs[1]+" "+strs[2]);
 					XSSFRow row = sheet.createRow(i+1); 
 					row.createCell(0).setCellValue(i+1);
 		        	row.createCell(1).setCellValue(strs[0]);
@@ -100,13 +101,15 @@ public class OrderCollector {
 		        	row.createCell(9).setCellValue(strs[8]);
 		        	row.createCell(10).setCellValue(strs[9]);
 		        	row.createCell(11).setCellValue(strs[10]);
-}
+		        	int count = Integer.parseInt(strs[3]);
+		        	account += count;
+				}
 				
 				//写入文件
 		        FileOutputStream out = null; 
 		        try {
 		        	new File(targetDir+File.separator+"基地").mkdirs();
-		            out = new FileOutputStream(targetDir+File.separator+"基地"+File.separator+date + " 苏苏 " +e2.getKey()+" "+ e.getKey() + FILE_POSTFIX); 
+		            out = new FileOutputStream(targetDir+File.separator+"基地"+File.separator+date + " 苏苏 " +e.getKey()+" "+ e2.getKey() + " "+ account+"单" +FILE_POSTFIX); 
 		            workbook.write(out); 
 		        } catch (IOException e1) { 
 		            e1.printStackTrace(); 
