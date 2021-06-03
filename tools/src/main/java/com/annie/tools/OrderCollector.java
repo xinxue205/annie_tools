@@ -38,7 +38,8 @@ public class OrderCollector {
 	static String[] targetHeaderJD = {"订单号", "收件人姓名", "收件人电话", "快递单号", "单品名称"};
 	static Map<String, Integer> kdm_idx = new HashMap<String, Integer>();
 	static Map<String, String> kdh_kdm = new HashMap<String, String>();
-	static List<String[]>[] allData = new ArrayList[9];
+	static List<String[]>[] allData1 = new ArrayList[9];
+	static List<String[]>[] allData2 = new ArrayList[9];
 	private static Properties jdConf = new Properties();
 	private static SimpleDateFormat sdf = new SimpleDateFormat("MM-dd");
 	
@@ -202,34 +203,48 @@ public class OrderCollector {
 	public static void kdOrder() throws Exception {
 		init();
 		readData(); 
-		exportData();
+		exportData("系统1", allData1);
+		exportData("系统2", allData2);
 	}
 
-	private static void exportData() throws Exception {
+	private static void exportData(String sysName, List[] datas) throws Exception {
 		int j = 0;
 		for (Entry<String, Integer> e : kdm_idx.entrySet()) {
-			List<String[]> data = allData[e.getValue()];
+			List<String[]> data = datas[e.getValue()];
 			if(data.size()==0) {
 				System.out.println(e.getKey()+" 快递无订单");
 				continue;
 			}
 			XSSFWorkbook workbook = new XSSFWorkbook(); 
 			XSSFSheet sheet = workbook.createSheet();
-			for (int i = 0; i < data.size(); i++) {
-				String[] currData = data.get(i);
-				XSSFRow row = sheet.createRow(i); 
+			int fileRowN = 0;
+			int beginColN = 0;
+			if("系统2".equals(sysName)){
+				fileRowN = 1;
+				beginColN = 1;
+				XSSFRow row = sheet.createRow(0); 
 				XSSFCell cell = row.createCell(0);
-	        	cell.setCellValue(currData[0]);
+	        	cell.setCellValue("序号(可不填)");
 	        	cell = row.createCell(1);
+	        	cell.setCellValue("订单号");
+	        	cell = row.createCell(2);
+	        	cell.setCellValue("快递单号");
+			}
+			
+			for (int i = 0; i < data.size(); i++, j++, fileRowN++) {
+				String[] currData = data.get(i);
+				XSSFRow row = sheet.createRow(fileRowN); 
+				XSSFCell cell = row.createCell(beginColN);
+	        	cell.setCellValue(currData[0]);
+	        	cell = row.createCell(beginColN+1);
 	        	cell.setCellValue(currData[3]);
-	        	j++;
 			}
 			
 			//写入文件
             FileOutputStream out = null; 
             try {
             	new File(targetDir+File.separator+"快递").mkdirs();
-                out = new FileOutputStream(targetDir+File.separator+"快递"+File.separator+e.getKey()+ FILE_POSTFIX); 
+                out = new FileOutputStream(targetDir+File.separator+"快递"+File.separator+sysName+"-"+e.getKey()+ FILE_POSTFIX); 
                 workbook.write(out); 
             } catch (IOException e1) { 
                 e1.printStackTrace(); 
@@ -242,7 +257,7 @@ public class OrderCollector {
             }
     		System.out.println(e.getKey()+" 快递处理完（共"+ data.size() +"条数据）！");
 		}
-		System.out.println("此次处理完毕(共"+ j +"条数据)！");
+		System.out.println("----"+sysName+" 此次处理完毕(共"+ j +"条数据)！");
 	}
 	
 	private static void initJD() throws Exception  {
@@ -261,15 +276,25 @@ public class OrderCollector {
 		kdm_idx.put("百世", 7);
 		kdm_idx.put("其它", 8);
 		
-		allData[0] = new ArrayList<String[]>();
-		allData[1] = new ArrayList<String[]>();
-		allData[2] = new ArrayList<String[]>();
-		allData[3] = new ArrayList<String[]>();
-		allData[4] = new ArrayList<String[]>();
-		allData[5] = new ArrayList<String[]>();
-		allData[6] = new ArrayList<String[]>();
-		allData[7] = new ArrayList<String[]>();
-		allData[8] = new ArrayList<String[]>();
+		allData1[0] = new ArrayList<String[]>();
+		allData1[1] = new ArrayList<String[]>();
+		allData1[2] = new ArrayList<String[]>();
+		allData1[3] = new ArrayList<String[]>();
+		allData1[4] = new ArrayList<String[]>();
+		allData1[5] = new ArrayList<String[]>();
+		allData1[6] = new ArrayList<String[]>();
+		allData1[7] = new ArrayList<String[]>();
+		allData1[8] = new ArrayList<String[]>();
+		
+		allData2[0] = new ArrayList<String[]>();
+		allData2[1] = new ArrayList<String[]>();
+		allData2[2] = new ArrayList<String[]>();
+		allData2[3] = new ArrayList<String[]>();
+		allData2[4] = new ArrayList<String[]>();
+		allData2[5] = new ArrayList<String[]>();
+		allData2[6] = new ArrayList<String[]>();
+		allData2[7] = new ArrayList<String[]>();
+		allData2[8] = new ArrayList<String[]>();
 		
 		Properties s = getConf();
 //			JSONObject jsonObject = JSONObject.fromObject(s);
@@ -343,8 +368,12 @@ public class OrderCollector {
 			} else {
 				System.out.println(kdh + " 未知的快递公司，按其它处理");
 			}
-			List kdxx = allData[kdmIndex];
-			kdxx.add(data);
+			String ddh = data[0];
+			if(ddh.startsWith("202")){
+				allData2[kdmIndex].add(data);
+			} else {
+				allData1[kdmIndex].add(data);
+			}
 		}
 	}
 
